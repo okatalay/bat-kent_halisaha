@@ -2,9 +2,21 @@ import tkinter as tk
 from tkinter import ttk
 import sqlite3 as sql
 from tkcalendar import Calendar  # Import Calendar widget from tkcalendar
-
+import sql_mod
 
 root = tk.Tk()
+pgen_root=1400
+pyuks_root=800
+
+ekrangen= root.winfo_screenwidth()
+ekranyuks=root.winfo_screenheight()
+
+x=(ekrangen-pgen_root)//2
+y=(ekranyuks-pyuks_root)//2
+root.geometry(f"{pgen_root}x{pyuks_root}+{x}+{y}")
+
+
+
 root.geometry("1400x800")
 root.title("BATIKENT HALISAHA")
 
@@ -13,7 +25,7 @@ frm.grid(column=0, row=0, padx=50, pady=50)
 
 def sql_sorgu():
 
-    vt = sql.connect('test.db')
+    vt = sql.connect('batikent.db')
     cursor = vt.cursor()
     vt.commit()
     cursor.execute("SELECT * FROM kisi_listesi")
@@ -26,7 +38,8 @@ def sql_sorgu():
 saatler= ["17:00","", "18:00","","19:00","", "20:00","", "21:00","", "22:00","", "23:00","", "00:00","", "01.00","", "02.00",""]
 gunler = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]
 servis=["Servis 1","Servis 2","Servis 3"]
-rehber_list = sql_sorgu()
+rehber_list = sql_mod.sql_query("rehber")
+print(rehber_list)
 
 
 
@@ -53,6 +66,8 @@ for i in range(7):
             combo.grid(column=i + 1, row=j + 1, padx=5, pady=5)
             combo_list.append(combo)
 
+
+
 def show_calendar():
     cal = Calendar(selectmode="day", date_pattern="yyyy-mm-dd")
     cal.place(x=170, y=535)
@@ -60,6 +75,29 @@ def show_calendar():
     def on_date_select(event):
         selected_date = cal.get_date()
         print("Selected Date:", selected_date)
+
+        try:
+            con = sql.connect('test.db')
+            cursor = con.cursor()
+
+            query = "SELECT * from takvim"
+            cursor.execute(query)
+            records = cursor.fetchall()
+            print(records)
+            cursor.close()
+
+        except sql.Error as error:
+            print("Failed to read data from sqlite table", error)
+        finally:
+            if con:
+                con.close()
+                print("The SQLite connection is closed")
+
+        combo_list[0]["text"] = "aaaaaa"
+        combo_list[1]["text"] = "servis"
+        combo_list[2]["values"] = "ssss"
+
+
 
     cal.bind("<<CalendarSelected>>", on_date_select)
 
@@ -138,13 +176,6 @@ def kisi_listesi(ekle=None):
 
     def on_close():
         top.destroy()
-        combo_list = []
-        for i in range(7):
-            for j in range(10):
-                combo = ttk.Combobox(frm, values=rehber_list)
-                combo.grid(column=i + 1, row=j + 1, padx=5, pady=5)
-                combo_list.append(combo)
-
 
     top.protocol("WM_DELETE_WINDOW", on_close)
 
