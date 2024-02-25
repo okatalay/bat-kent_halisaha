@@ -5,7 +5,7 @@ def sql_into(table, value1, value2):
     try:
         vt = sql.connect('batikent.sqlite')
         cursor = vt.cursor()
-        cursor.execute(f"INSERT INTO {table} VALUES ({value1}, {value2})")
+        cursor.execute(f"INSERT INTO {table} VALUES ('{value1}', '{value2}')")
         results = cursor.fetchall()
         vt.commit()
 
@@ -31,23 +31,31 @@ def sql_delete(table, values1, value1):
         if vt:
             vt.close()
 
-def sql_query(table):
+def sql_query(table, value1=None, value2=None):
 
-    try:
-        vt = sql.connect('batikent.sqlite')
-        cursor = vt.cursor()
 
-        # Using string formatting to insert the table name
-        cursor.execute(f"SELECT * FROM {table}")
-        results = cursor.fetchall()
+        try:
+            vt = sql.connect('batikent.sqlite')
+            cursor = vt.cursor()
 
-        return results
+            if table == "rehber" or table == "kullanici":
 
-    except sql.Error as e:
-        print("SQL_SORGU SORUNU:", e)
+                cursor.execute(f"SELECT * FROM {table}")
+                results = cursor.fetchall()
 
-    finally:
-        if vt:
-            vt.close()
+                return results
 
+            elif table == "takvim":
+
+                cursor.execute(f"SELECT * FROM takvim WHERE tarih BETWEEN '{value1}' AND '{value2}'")
+                results = cursor.fetchall()
+
+                return results
+
+        except sql.Error as e:
+            print("SQL_SORGU SORUNU:", e)
+
+        finally:
+            if vt:
+                vt.close()
 

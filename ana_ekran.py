@@ -3,6 +3,7 @@ from tkinter import ttk
 import sqlite3 as sql
 from tkcalendar import Calendar  # Import Calendar widget from tkcalendar
 import sql_mod
+import datetime
 
 root = tk.Tk()
 pgen_root=1400
@@ -15,32 +16,17 @@ x=(ekrangen-pgen_root)//2
 y=(ekranyuks-pyuks_root)//2
 root.geometry(f"{pgen_root}x{pyuks_root}+{x}+{y}")
 
-
-
 root.geometry("1400x800")
 root.title("BATIKENT HALISAHA")
 
 frm = ttk.Frame(root)
 frm.grid(column=0, row=0, padx=50, pady=50)
 
-def sql_sorgu():
-
-    vt = sql.connect('batikent.db')
-    cursor = vt.cursor()
-    vt.commit()
-    cursor.execute("SELECT * FROM kisi_listesi")
-    veriler = cursor.fetchall()
-    vt.close()
-
-    return veriler
-
 
 saatler= ["17:00","", "18:00","","19:00","", "20:00","", "21:00","", "22:00","", "23:00","", "00:00","", "01.00","", "02.00",""]
 gunler = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ", "PAZAR"]
 servis=["Servis 1","Servis 2","Servis 3"]
 rehber_list = sql_mod.sql_query("rehber")
-print(rehber_list)
-
 
 
 x=0
@@ -54,52 +40,54 @@ for i in saatler:
     ttk.Label(frm, text=i).grid(column=0, row=y+1)
     y+=1
 
-combo_list=[]
+combo_list=[[],[],[],[],[],[],[]]
+combo_list[5].append("aaa333a")
 for i in range(7):
-   for j in range(20):
+    list_no=0
+    for j in range(20):
         if j%2==0:
             combo = ttk.Combobox(frm, values=rehber_list, width=25)
             combo.grid(column=i+1, row=j+1, padx=5, pady=5)
-            combo_list.append(combo)
+            combo_list[list_no].append(combo)
         else:
             combo = ttk.Combobox(frm, values=servis, width=25)
             combo.grid(column=i + 1, row=j + 1, padx=5, pady=5)
-            combo_list.append(combo)
+            combo_list[list_no].append(combo)
+    list_no+=1
 
-
-
+print(combo_list)
 def show_calendar():
+    def on_date_select(start_date, end_date):
+        start_date_str = start_date.strftime("%Y-%m-%d")
+        end_date_str = end_date.strftime("%Y-%m-%d")
+        print("Selected Week:", start_date_str, "to", end_date_str)
+
+        tkvm = sql_mod.sql_query("takvim", start_date_str, end_date_str)
+        cal.destroy()
+
+        print(tkvm)
+
     cal = Calendar(selectmode="day", date_pattern="yyyy-mm-dd")
     cal.place(x=170, y=535)
 
-    def on_date_select(event):
+    def on_select(event):
+
         selected_date = cal.get_date()
-        print("Selected Date:", selected_date)
+        date_obj = datetime.datetime.strptime(selected_date, "%Y-%m-%d")
+        start_of_week = date_obj - datetime.timedelta(days=date_obj.weekday())
+        end_of_week = start_of_week + datetime.timedelta(days=6)
+        on_date_select(start_of_week, end_of_week)
 
-        try:
-            con = sql.connect('test.db')
-            cursor = con.cursor()
 
-            query = "SELECT * from takvim"
-            cursor.execute(query)
-            records = cursor.fetchall()
-            print(records)
-            cursor.close()
-
-        except sql.Error as error:
-            print("Failed to read data from sqlite table", error)
-        finally:
-            if con:
-                con.close()
-                print("The SQLite connection is closed")
-
-        combo_list[0]["text"] = "aaaaaa"
-        combo_list[1]["text"] = "servis"
-        combo_list[2]["values"] = "ssss"
+        # Update the ComboBox text based on the retrieved data
+        #for i in range(len(tkvm)):
+            #pair = combo_list[i:i + 2]
+            #pair[0].set(tkvm[i][1])
+            #pair[1].set(tkvm[i][2])
 
 
 
-    cal.bind("<<CalendarSelected>>", on_date_select)
+    cal.bind("<<CalendarSelected>>", on_select)
 
 btn_calendar = ttk.Button(root, text="Takvim", command=show_calendar)
 btn_calendar.place(x=80, y=700)
