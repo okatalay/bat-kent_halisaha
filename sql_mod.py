@@ -47,7 +47,7 @@ def sql_query(table, value1=None, value2=None):
 
             elif table == "takvim":
 
-                cursor.execute(f"SELECT * FROM takvim WHERE tarih BETWEEN '{value1}' AND '{value2}'")
+                cursor.execute(f"SELECT * FROM takvim WHERE tarih BETWEEN '{value1}' AND '{value2}' ORDER BY tarih ASC")
                 results = cursor.fetchall()
 
                 return results

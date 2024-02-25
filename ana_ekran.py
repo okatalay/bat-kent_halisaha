@@ -41,9 +41,11 @@ for i in saatler:
     y+=1
 
 combo_list=[[],[],[],[],[],[],[]]
-combo_list[5].append("aaa333a")
+
+list_no=0
+
 for i in range(7):
-    list_no=0
+
     for j in range(20):
         if j%2==0:
             combo = ttk.Combobox(frm, values=rehber_list, width=25)
@@ -55,7 +57,7 @@ for i in range(7):
             combo_list[list_no].append(combo)
     list_no+=1
 
-print(combo_list)
+
 def show_calendar():
     def on_date_select(start_date, end_date):
         start_date_str = start_date.strftime("%Y-%m-%d")
@@ -65,7 +67,7 @@ def show_calendar():
         tkvm = sql_mod.sql_query("takvim", start_date_str, end_date_str)
         cal.destroy()
 
-        print(tkvm)
+        return tkvm
 
     cal = Calendar(selectmode="day", date_pattern="yyyy-mm-dd")
     cal.place(x=170, y=535)
@@ -76,14 +78,26 @@ def show_calendar():
         date_obj = datetime.datetime.strptime(selected_date, "%Y-%m-%d")
         start_of_week = date_obj - datetime.timedelta(days=date_obj.weekday())
         end_of_week = start_of_week + datetime.timedelta(days=6)
-        on_date_select(start_of_week, end_of_week)
+        tkvm = on_date_select(start_of_week, end_of_week)
 
 
-        # Update the ComboBox text based on the retrieved data
-        #for i in range(len(tkvm)):
-            #pair = combo_list[i:i + 2]
-            #pair[0].set(tkvm[i][1])
-            #pair[1].set(tkvm[i][2])
+        print(tkvm)
+        print(combo_list)
+
+        for gun_combo in combo_list:
+
+            for cb in gun_combo:
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -91,10 +105,6 @@ def show_calendar():
 
 btn_calendar = ttk.Button(root, text="Takvim", command=show_calendar)
 btn_calendar.place(x=80, y=700)
-
-
-
-
 
 
 def kisi_listesi(ekle=None):
