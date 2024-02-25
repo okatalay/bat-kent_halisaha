@@ -16,12 +16,12 @@ def sql_into(table, value1, value2):
         if vt:
             vt.close()
 
-def sql_delete(table, values1, value1):
+def sql_delete(table, value1, value2):
 
     try:
         vt = sql.connect('batikent.sqlite')
         cursor = vt.cursor()
-        cursor.execute(f"DELETE FROM ? WHERE ")
+        cursor.execute(f"DELETE FROM {table} WHERE isim='{value1}' AND tel='{value2}'")
         vt.commit()
 
     except sql.Error as e:
@@ -38,7 +38,7 @@ def sql_query(table, value1=None, value2=None):
             vt = sql.connect('batikent.sqlite')
             cursor = vt.cursor()
 
-            if table == "rehber" or table == "kullanici":
+            if table == "rehber":
 
                 cursor.execute(f"SELECT * FROM {table}")
                 results = cursor.fetchall()
@@ -51,6 +51,14 @@ def sql_query(table, value1=None, value2=None):
                 results = cursor.fetchall()
 
                 return results
+
+            elif table == "kullanici":
+
+                cursor.execute(f"SELECT * FROM kullanici WHERE id='{value1}' AND sifre='{value2}'")
+                results = cursor.fetchall()
+
+                return results
+
 
         except sql.Error as e:
             print("SQL_SORGU SORUNU:", e)

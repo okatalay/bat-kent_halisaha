@@ -44,25 +44,24 @@ combo_list=[[],[],[],[],[],[],[]]
 
 list_no=0
 
+combo_list=[]
 for i in range(7):
-
-    for j in range(20):
+   for j in range(20):
         if j%2==0:
             combo = ttk.Combobox(frm, values=rehber_list, width=25)
             combo.grid(column=i+1, row=j+1, padx=5, pady=5)
-            combo_list[list_no].append(combo)
+            combo_list.append(combo)
         else:
             combo = ttk.Combobox(frm, values=servis, width=25)
             combo.grid(column=i + 1, row=j + 1, padx=5, pady=5)
-            combo_list[list_no].append(combo)
-    list_no+=1
+            combo_list.append(combo)
 
 
 def show_calendar():
     def on_date_select(start_date, end_date):
         start_date_str = start_date.strftime("%Y-%m-%d")
         end_date_str = end_date.strftime("%Y-%m-%d")
-        print("Selected Week:", start_date_str, "to", end_date_str)
+        #print("Selected Week:", start_date_str, "to", end_date_str)
 
         tkvm = sql_mod.sql_query("takvim", start_date_str, end_date_str)
         cal.destroy()
@@ -74,31 +73,53 @@ def show_calendar():
 
     def on_select(event):
 
+        cal.destroy()
         selected_date = cal.get_date()
         date_obj = datetime.datetime.strptime(selected_date, "%Y-%m-%d")
         start_of_week = date_obj - datetime.timedelta(days=date_obj.weekday())
         end_of_week = start_of_week + datetime.timedelta(days=6)
         tkvm = on_date_select(start_of_week, end_of_week)
 
-
         print(tkvm)
-        print(combo_list)
 
-        for gun_combo in combo_list:
+        current_date = datetime.date.today()
+        formatted_date = current_date.strftime("%Y-%m-%d")
 
-            for cb in gun_combo:
+        print(formatted_date)
 
+        if not tkvm:
+            for combo in combo_list:
+                combo.set("None")
+                combo.config(state='disabled')
 
+        flag=0
 
+        for i in tkvm:
+            if formatted_date == i[0]:
+                flag=1
 
+        if flag == 1:
+            t = 0
+            for i in range(0, len(combo_list), 2):
+                pair = combo_list[i:i + 2]
+                pair[0].set(tkvm[t][1])
+                pair[1].set(tkvm[t][2])
+                pair[0].config(state='normal')
+                pair[1].config(state='normal')
+                t += 1
+        elif flag == 0:
 
+            t = 0
+            for i in range(0, len(combo_list), 2):
 
+                if len(tkvm)>t:
+                    pair = combo_list[i:i + 2]
+                    pair[0].set(tkvm[t][1])
+                    pair[1].set(tkvm[t][2])
+                    pair[0].config(state='disabled')
+                    pair[1].config(state='disabled')
 
-
-
-
-
-
+                    t += 1
 
 
     cal.bind("<<CalendarSelected>>", on_select)
@@ -188,17 +209,12 @@ def kisi_listesi(ekle=None):
             secilen = lb_1.get(liste_index)
             name, phone = secilen.split(" - ")
 
-            try:
-                vt = sql.connect('test.db')
-                cursor = vt.cursor()
-                cursor.execute("DELETE FROM kisi_listesi WHERE isim=?", (name,))
-                vt.commit()
-                vt.close()
-            except:
-                pass
+            sql_mod.sql_delete("rehber", name, phone)
+
+
             lb_1.delete(0, tk.END)
             rehber_list.clear()
-            rehber_list.extend(sql_sorgu())
+            rehber_list.extend(sql_mod.sql_query("rehber"))
             for i in rehber_list:
                 lb_1.insert(tk.END, i[0]+" - "+str(i[1]))
 
@@ -210,28 +226,6 @@ def kisi_listesi(ekle=None):
 
     tk.Label(top, text="Adı Soyadi").place(x=320, y=40)
     tk.Label(top, text="Telefon No").place(x=320, y=60)
-
-    def kisi_guncelle():
-
-        liste_index = lb_1.curselection()
-        if liste_index:
-            secilen = lb_1.get(liste_index)
-            name, phone = secilen.split(" - ")
-
-
-        name_new = entry_name.get()
-        phone_new = entry_phone.get()
-
-
-        try:
-            vt = sql.connect('test.db')
-            cursor = vt.cursor()
-            cursor.execute("UPDATE kisi_listesi SET isim=?, telefon=? WHERE isim=? AND telefon=?",
-                           (name_new, phone_new, name, phone))
-            vt.commit()
-            vt.close()
-        except:
-            pass
 
 
     def duzenle():
@@ -248,18 +242,11 @@ def kisi_listesi(ekle=None):
         name_new = entry_name.get()
         phone_new = entry_phone.get()
 
-        try:
-            vt = sql.connect('test.db')
-            cursor = vt.cursor()
-            cursor.execute("INSERT INTO kisi_listesi VALUES (?,?)", (name_new, phone_new))
-            vt.commit()
-            vt.close()
-        except:
-            pass
+        sql_mod.sql_into("rehber", name_new, phone_new)
 
         lb_1.delete(0, tk.END)
         rehber_list.clear()
-        rehber_list.extend(sql_sorgu())
+        rehber_list.extend(sql_mod.sql_query("rehber"))
         for i in rehber_list:
             lb_1.insert(tk.END, i[0] + " - " + str(i[1]))
 

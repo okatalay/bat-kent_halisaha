@@ -3,7 +3,7 @@ from tkinter import ttk
 import sqlite3 as sql
 from tkinter import messagebox as mb
 
-
+import sql_mod
 
 root_giris = tk.Tk()
 
@@ -36,26 +36,17 @@ def giris_yap():
     id=entry_giris.get()
     sifre=entry_sifre.get()
 
-    try:
-        vt = sql.connect('test.db')
-        cursor = vt.cursor()
+    veri = sql_mod.sql_query("kullanici", id, sifre)
 
-        cursor.execute("SELECT ıd, sifre FROM kullanıcı_girisi WHERE ıd=? AND sifre=?", (id,sifre))
-        veriler = cursor.fetchall()
+    if veri:
+        root_giris.destroy()
+        import ana_ekran
 
-        if veriler:
-            root_giris.destroy()
-            import deneme3
+    else:
+        mb.showerror("Hatalı Giriş !", "Lüfren geçerli bir kullanıcı adı ve şifre girin.", icon="error")
 
-
-        else:
-            mb.showerror("Hatalı Giriş !", "Lüfren geçerli bir kullanıcı adı ve şifre girin.", icon="error")
-    except:
-        pass
 
 b_giris = tk.Button(text="Giriş Yap", command=giris_yap)
 b_giris.place(x=160, y=90, width=80, height=25)
-
-
 
 root_giris.mainloop()
