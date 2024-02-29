@@ -4,6 +4,8 @@ import sqlite3 as sql
 from tkcalendar import Calendar  # Import Calendar widget from tkcalendar
 import sql_mod
 import datetime
+import sql_modul
+
 
 root = tk.Tk()
 pgen_root=1400
@@ -40,13 +42,12 @@ for i in saatler:
     ttk.Label(frm, text=i).grid(column=0, row=y+1)
     y+=1
 
-combo_list=[[],[],[],[],[],[],[]]
+combo_list=[]
 
 list_no=0
 
-combo_list=[]
 for i in range(7):
-   for j in range(20):
+    for j in range(20):
         if j%2==0:
             combo = ttk.Combobox(frm, values=rehber_list, width=25)
             combo.grid(column=i+1, row=j+1, padx=5, pady=5)
@@ -55,71 +56,56 @@ for i in range(7):
             combo = ttk.Combobox(frm, values=servis, width=25)
             combo.grid(column=i + 1, row=j + 1, padx=5, pady=5)
             combo_list.append(combo)
+    list_no+=1
 
-
+print(combo_list)
 def show_calendar():
-    def on_date_select(start_date, end_date):
-        start_date_str = start_date.strftime("%Y-%m-%d")
-        end_date_str = end_date.strftime("%Y-%m-%d")
-        #print("Selected Week:", start_date_str, "to", end_date_str)
-
-        tkvm = sql_mod.sql_query("takvim", start_date_str, end_date_str)
-        cal.destroy()
-
-        return tkvm
 
     cal = Calendar(selectmode="day", date_pattern="yyyy-mm-dd")
     cal.place(x=170, y=535)
 
-    def on_select(event):
+    def on_select(event=None):
 
         cal.destroy()
         selected_date = cal.get_date()
+
         date_obj = datetime.datetime.strptime(selected_date, "%Y-%m-%d")
-        start_of_week = date_obj - datetime.timedelta(days=date_obj.weekday())
-        end_of_week = start_of_week + datetime.timedelta(days=6)
-        tkvm = on_date_select(start_of_week, end_of_week)
+        iso_year, secilen_hafta, _ = date_obj.isocalendar()
 
-        print(tkvm)
+        today = datetime.datetime.today()
+        iso_calendar = today.isocalendar()
+        mevcut_hafta = iso_calendar[1]
 
-        current_date = datetime.date.today()
-        formatted_date = current_date.strftime("%Y-%m-%d")
+        sonuc = sql_modul.sql_query("takvim", "*", "hafta", secilen_hafta)
 
-        print(formatted_date)
+        print(sonuc)
 
-        if not tkvm:
+        if not sonuc:
             for combo in combo_list:
                 combo.set("None")
                 combo.config(state='disabled')
 
-        flag=0
+        elif secilen_hafta==mevcut_hafta:
 
-        for i in tkvm:
-            if formatted_date == i[0]:
-                flag=1
-
-        if flag == 1:
             t = 0
             for i in range(0, len(combo_list), 2):
                 pair = combo_list[i:i + 2]
-                pair[0].set(tkvm[t][1])
-                pair[1].set(tkvm[t][2])
+                pair[0].set(sonuc[t][3])
+                pair[1].set(sonuc[t][4])
                 pair[0].config(state='normal')
                 pair[1].config(state='normal')
                 t += 1
-        elif flag == 0:
+
+        else:
 
             t = 0
             for i in range(0, len(combo_list), 2):
-
-                if len(tkvm)>t:
-                    pair = combo_list[i:i + 2]
-                    pair[0].set(tkvm[t][1])
-                    pair[1].set(tkvm[t][2])
-                    pair[0].config(state='disabled')
-                    pair[1].config(state='disabled')
-
-                    t += 1
+                pair = combo_list[i:i + 2]
+                pair[0].set(sonuc[t][3])
+                pair[1].set(sonuc[t][4])
+                pair[0].config(state='disabled')
+                pair[1].config(state='disabled')
+                t += 1
 
 
     cal.bind("<<CalendarSelected>>", on_select)
@@ -264,6 +250,15 @@ def kisi_listesi(ekle=None):
 
     top.mainloop()
 
+def kaydet():
+    pass
+
+
+
+
+
+kaydet = ttk.Button(root, text="Kaydet", command=kaydet)
+kaydet.place(x=1280, y=700)
 
 menubar = tk.Menu(root)
 root.config(menu=menubar)
@@ -274,6 +269,12 @@ filemenu.add_command(label="Kişi Ekle")
 filemenu.add_command(label="Close")
 
 menubar.add_cascade(label="Rehber", menu=filemenu)
+
+
+
+#current_date = datetime.date.today()
+#formatted_date = current_date.strftime("%Y-%m-%d")
+
 
 
 root.mainloop()

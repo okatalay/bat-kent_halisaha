@@ -45,8 +45,12 @@ def giris_yap():
     else:
         mb.showerror("Hatalı Giriş !", "Lüfren geçerli bir kullanıcı adı ve şifre girin.", icon="error")
 
+def enter_key(event):
+    giris_yap()
 
 b_giris = tk.Button(text="Giriş Yap", command=giris_yap)
 b_giris.place(x=160, y=90, width=80, height=25)
+
+root_giris.bind('<Return>', enter_key)
 
 root_giris.mainloop()
