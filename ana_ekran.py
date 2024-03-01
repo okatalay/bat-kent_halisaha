@@ -1,3 +1,4 @@
+
 import tkinter as tk
 from tkinter import ttk
 import sqlite3 as sql
@@ -30,7 +31,6 @@ gunler = ["PAZARTESİ", "SALI", "ÇARŞAMBA", "PERŞEMBE", "CUMA", "CUMARTESİ",
 servis=["Servis 1","Servis 2","Servis 3"]
 rehber_list = sql_mod.sql_query("rehber")
 
-
 x=0
 y=0
 
@@ -58,7 +58,35 @@ for i in range(7):
             combo_list.append(combo)
     list_no+=1
 
-print(combo_list)
+def guncel_dolum():
+    today = datetime.datetime.today()
+    iso_calendar = today.isocalendar()
+    mevcut_hafta = iso_calendar[1]
+
+    sonuc = sql_modul.sql_query("takvim", "*", "hafta", mevcut_hafta)
+
+    if len(sonuc) == 70:
+        t = 0
+        for i in range(0, len(combo_list), 2):
+            pair = combo_list[i:i + 2]
+            pair[0].set(sonuc[t][3])
+            pair[1].set(sonuc[t][4])
+
+            t += 1
+    else:
+        repetitions = 70 - len(sonuc)
+        none_tuple = ("None",) * 5
+        sonuc = sonuc + [none_tuple] * repetitions
+
+        t = 0
+        for i in range(0, len(combo_list), 2):
+            pair = combo_list[i:i + 2]
+            pair[0].set(sonuc[t][3])
+            pair[1].set(sonuc[t][4])
+
+            t += 1
+guncel_dolum()
+
 def show_calendar():
 
     cal = Calendar(selectmode="day", date_pattern="yyyy-mm-dd")
@@ -69,6 +97,9 @@ def show_calendar():
         cal.destroy()
         selected_date = cal.get_date()
 
+        for comb in combo_list:
+            comb.delete(0, tk.END)
+
         date_obj = datetime.datetime.strptime(selected_date, "%Y-%m-%d")
         iso_year, secilen_hafta, _ = date_obj.isocalendar()
 
@@ -77,8 +108,6 @@ def show_calendar():
         mevcut_hafta = iso_calendar[1]
 
         sonuc = sql_modul.sql_query("takvim", "*", "hafta", secilen_hafta)
-
-        print(sonuc)
 
         if not sonuc:
             for combo in combo_list:
@@ -98,15 +127,28 @@ def show_calendar():
 
         else:
 
-            t = 0
-            for i in range(0, len(combo_list), 2):
-                pair = combo_list[i:i + 2]
-                pair[0].set(sonuc[t][3])
-                pair[1].set(sonuc[t][4])
-                pair[0].config(state='disabled')
-                pair[1].config(state='disabled')
-                t += 1
+            if len(sonuc)==70:
+                t = 0
+                for i in range(0, len(combo_list), 2):
+                    pair = combo_list[i:i + 2]
+                    pair[0].set(sonuc[t][3])
+                    pair[1].set(sonuc[t][4])
+                    pair[0].config(state='disabled')
+                    pair[1].config(state='disabled')
+                    t += 1
+            else :
+                repetitions= 70-len(sonuc)
+                none_tuple = ("None",) * 5
+                sonuc = sonuc + [none_tuple] * repetitions
 
+                t = 0
+                for i in range(0, len(combo_list), 2):
+                    pair = combo_list[i:i + 2]
+                    pair[0].set(sonuc[t][3])
+                    pair[1].set(sonuc[t][4])
+                    pair[0].config(state='disabled')
+                    pair[1].config(state='disabled')
+                    t += 1
 
     cal.bind("<<CalendarSelected>>", on_select)
 
